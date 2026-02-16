@@ -1,4 +1,4 @@
-# 🧌 OccyChain
+# 🧌 Oki Onchain
 
 **Bitcoin On-Chain Intelligence Dashboard**
 
@@ -153,7 +153,7 @@ Contributions welcome! Open an issue or PR.
 
 ## ⚠️ Disclaimer
 
-**This is NOT financial advice.** OccyChain is an educational tool for learning about Bitcoin on-chain analytics. Always do your own research (DYOR) before making any investment decisions.
+**This is NOT financial advice.** Oki Onchain is an educational tool for learning about Bitcoin on-chain analytics. Always do your own research (DYOR) before making any investment decisions.
 
 ## 📝 License
 
@@ -161,4 +161,4 @@ MIT
 
 ---
 
-Built with 🧌 by the OccyChain team
+Built with 🧌 by the Oki Onchain team

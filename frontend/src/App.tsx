@@ -30,7 +30,7 @@ function App() {
               <span className="text-4xl">🧌</span>
               <div>
                 <h1 className="text-2xl font-bold bg-gradient-to-r from-occy-green to-occy-blue bg-clip-text text-transparent">
-                  OccyChain
+                  Oki Onchain
                 </h1>
                 <p className="text-xs text-gray-400">Bitcoin On-Chain Intelligence</p>
               </div>
@@ -78,7 +78,7 @@ function App() {
       <footer className="border-t border-occy-blue/30 bg-occy-dark/80 backdrop-blur-sm mt-8">
         <div className="container mx-auto px-4 py-4">
           <div className="text-center text-gray-400 text-sm">
-            <p>Built with 🧌 by OccyChain • Data: Binance, Alternative.me</p>
+            <p>Built with 🧌 by Oki Onchain • Data: Binance, Alternative.me</p>
             <p className="text-xs mt-1">Not financial advice. DYOR.</p>
           </div>
         </div>

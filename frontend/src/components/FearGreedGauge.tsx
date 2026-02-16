@@ -34,10 +34,10 @@ export default function FearGreedGauge() {
   const rotation = (value / 100) * 180 - 90;
 
   return (
-    <div className="bg-occy-dark/90 backdrop-blur-sm border border-occy-blue/30 rounded-lg p-4 w-48">
+    <div className="bg-occy-dark/90 backdrop-blur-sm border border-occy-blue/30 rounded-lg p-2.5 w-36">
       <div className="text-center">
-        <div className="text-gray-400 text-xs font-medium mb-2">Fear & Greed Index</div>
-        <div className="relative w-32 h-16 mx-auto mb-2">
+        <div className="text-gray-400 text-[10px] font-medium mb-1.5">Fear & Greed</div>
+        <div className="relative w-24 h-12 mx-auto mb-1.5">
           <svg viewBox="0 0 100 50" className="w-full h-full">
             {/* Background arc */}
             <path
@@ -68,10 +68,10 @@ export default function FearGreedGauge() {
             <circle cx="50" cy="45" r="3" fill="#fff" />
           </svg>
         </div>
-        <div className="text-2xl font-mono font-bold" style={{ color: getColor() }}>
+        <div className="text-xl font-mono font-bold" style={{ color: getColor() }}>
           {value}
         </div>
-        <div className="text-xs" style={{ color: getColor() }}>
+        <div className="text-[10px]" style={{ color: getColor() }}>
           {getLabel()}
         </div>
       </div>

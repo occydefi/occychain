@@ -1,4 +1,4 @@
-# 🚀 OccyChain - Quick Start
+# 🚀 Oki Onchain - Quick Start
 
 ## ✅ Status: READY TO DEPLOY!
 

@@ -1,4 +1,4 @@
-# 🧌 OccyChain - Project Summary
+# 🧌 Oki Onchain - Project Summary
 
 ## ✅ Mission Accomplished!
 
