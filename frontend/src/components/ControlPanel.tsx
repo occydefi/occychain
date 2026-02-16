@@ -1,4 +1,3 @@
-import { useState } from 'react';
 import { indicators as allIndicators } from '../utils/indicators';
 import { Indicator } from '../types';
 
@@ -13,8 +12,6 @@ export default function ControlPanel({
   enabledIndicators,
   onIndicatorSelect 
 }: ControlPanelProps) {
-  const [collapsed, setCollapsed] = useState(false);
-
   const onChainIndicators = allIndicators.filter(i => i.category === 'onchain');
   const technicalIndicators = allIndicators.filter(i => i.category === 'technical');
   const maIndicators = allIndicators.filter(i => i.category === 'ma');
@@ -27,34 +24,11 @@ export default function ControlPanel({
     }
   };
 
-  if (collapsed) {
-    return (
-      <div className="fixed left-4 top-1/2 -translate-y-1/2 z-20">
-        <button
-          onClick={() => setCollapsed(false)}
-          className="bg-occy-dark/90 backdrop-blur-sm border border-occy-blue/30 rounded-lg p-3 hover:border-occy-blue/60 transition-colors"
-        >
-          <svg className="w-6 h-6 text-occy-blue" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
-          </svg>
-        </button>
-      </div>
-    );
-  }
-
   return (
-    <div className="fixed left-4 top-20 z-20 w-72 max-h-[calc(100vh-8rem)] overflow-y-auto">
-      <div className="bg-occy-dark/90 backdrop-blur-sm border border-occy-blue/30 rounded-lg p-4">
+    <div className="h-full p-4">
+      <div className="h-full">
         <div className="flex items-center justify-between mb-4">
           <h2 className="text-occy-blue font-semibold text-lg">Indicators</h2>
-          <button
-            onClick={() => setCollapsed(true)}
-            className="text-gray-400 hover:text-occy-blue transition-colors"
-          >
-            <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
-            </svg>
-          </button>
         </div>
 
         <IndicatorSection

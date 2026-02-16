@@ -1,7 +1,6 @@
 import { useState } from 'react';
 import Chart from './components/Chart';
 import ControlPanel from './components/ControlPanel';
-import FearGreedGauge from './components/FearGreedGauge';
 import RSIPanels from './components/RSIPanels';
 import Legend from './components/Legend';
 import { Indicator } from './types';
@@ -53,17 +52,21 @@ function App() {
       </header>
 
       {/* Main Content */}
-      <main className="container mx-auto px-4 py-6">
-        <div className="relative">
+      <main className="flex h-[calc(100vh-12rem)]">
+        {/* Control Panel - Left Side (20%) */}
+        <div className="w-80 flex-shrink-0 border-r border-occy-blue/30 overflow-y-auto">
           <ControlPanel
             enabledIndicators={enabledIndicators}
             onIndicatorToggle={handleIndicatorToggle}
             onIndicatorSelect={setSelectedIndicator}
           />
+        </div>
 
-          <FearGreedGauge />
-
-          <Chart enabledIndicators={enabledIndicators} />
+        {/* Main Chart Area - Center (fills remaining space) */}
+        <div className="flex-1 flex flex-col">
+          <div className="flex-1 relative">
+            <Chart enabledIndicators={enabledIndicators} />
+          </div>
 
           <RSIPanels />
 
