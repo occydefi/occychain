@@ -25,6 +25,7 @@ export default function Chart({ enabledIndicators }: ChartProps) {
   const chartContainerRef = useRef<HTMLDivElement>(null);
   const chartRef = useRef<IChartApi | null>(null);
   const candleSeriesRef = useRef<ISeriesApi<'Candlestick'> | null>(null);
+  const priceLines = useRef<any[]>([]);
   const [currentPrice, setCurrentPrice] = useState<number>(0);
 
   // Mock data for indicators (replace with real API data later)
@@ -221,14 +222,16 @@ export default function Chart({ enabledIndicators }: ChartProps) {
 
   // Update indicator lines when enabled/disabled
   useEffect(() => {
-    if (!chartRef.current) return;
+    if (!chartRef.current || !candleSeriesRef.current) return;
     
-    // Remove old indicator lines (we'll recreate them)
-    // For now, just log them
-    const lines = getIndicatorLines();
-    console.log('Indicator lines to draw:', lines);
+    // Remove old indicator lines
+    priceLines.current.forEach(line => {
+      candleSeriesRef.current?.removePriceLine(line);
+    });
+    priceLines.current = [];
 
-    // Add horizontal lines for each indicator
+    // Add new indicator lines
+    const lines = getIndicatorLines();
     lines.forEach(line => {
       const priceLine = {
         price: line.price,
@@ -238,8 +241,10 @@ export default function Chart({ enabledIndicators }: ChartProps) {
         title: line.label,
       };
       
-      // Add to candlestick series
-      candleSeriesRef.current?.createPriceLine(priceLine);
+      const createdLine = candleSeriesRef.current?.createPriceLine(priceLine);
+      if (createdLine) {
+        priceLines.current.push(createdLine);
+      }
     });
   }, [enabledIndicators]);
 
