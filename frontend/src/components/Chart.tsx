@@ -32,20 +32,20 @@ interface PriceBand {
 }
 
 const PRICE_BANDS: PriceBand[] = [
-  // Strong support zones (dark green)
-  { from: 82000, to: 85000, color: 'rgba(0, 255, 136, 0.7)', label: 'Strong Support' },
+  // Strong support zones (dark green) - HIGH OPACITY for visibility
+  { from: 82000, to: 85000, color: 'rgba(0, 255, 136, 0.85)', label: 'Strong Support' },
   // Medium support zones (medium green)
-  { from: 85000, to: 88500, color: 'rgba(0, 255, 136, 0.6)', label: 'Support Zone' },
+  { from: 85000, to: 88500, color: 'rgba(0, 255, 136, 0.75)', label: 'Support Zone' },
   // Light support (light green) - confluence area
-  { from: 88500, to: 93000, color: 'rgba(0, 255, 136, 0.5)', label: 'Buy Zone' },
+  { from: 88500, to: 93000, color: 'rgba(0, 255, 136, 0.65)', label: 'Buy Zone' },
   // Neutral zone (white)
-  { from: 93000, to: 95000, color: 'rgba(255, 255, 255, 0.2)', label: 'Neutral' },
+  { from: 93000, to: 95000, color: 'rgba(255, 255, 255, 0.25)', label: 'Neutral' },
   // Light resistance (light orange)
-  { from: 95000, to: 97000, color: 'rgba(255, 107, 53, 0.5)', label: 'Weak Resistance' },
+  { from: 95000, to: 97000, color: 'rgba(255, 107, 53, 0.65)', label: 'Weak Resistance' },
   // Medium resistance (orange)
-  { from: 97000, to: 99000, color: 'rgba(255, 107, 53, 0.6)', label: 'Resistance' },
+  { from: 97000, to: 99000, color: 'rgba(255, 107, 53, 0.75)', label: 'Resistance' },
   // Strong resistance (red)
-  { from: 99000, to: 102000, color: 'rgba(255, 68, 68, 0.7)', label: 'Strong Resistance' },
+  { from: 99000, to: 102000, color: 'rgba(255, 68, 68, 0.85)', label: 'Strong Resistance' },
 ];
 
 // Mock ETF Flow data (millions USD per day)
@@ -181,19 +181,23 @@ export default function Chart({ enabledIndicators }: ChartProps) {
 
     chartRef.current = chart;
 
-    // Add price bands using LineSeries with THICK lines (BEHIND candles)
-    // This creates a visual "filled band" effect
+    // Add price bands using MULTIPLE thick LineSeries (BEHIND candles)
+    // Create 15 lines per band to simulate filled area effect
     PRICE_BANDS.forEach(band => {
-      const bandSeries = chart.addLineSeries({
-        color: band.color,
-        lineWidth: 50, // VERY THICK to create filled effect
-        priceLineVisible: false,
-        lastValueVisible: false,
-        crosshairMarkerVisible: false,
-        title: band.label,
-      });
+      const numLines = 15; // More lines = smoother fill
       
-      bandSeriesRef.current.push(bandSeries);
+      for (let i = 0; i < numLines; i++) {
+        const bandSeries = chart.addLineSeries({
+          color: band.color,
+          lineWidth: 4, // Max width per line
+          priceLineVisible: false,
+          lastValueVisible: false,
+          crosshairMarkerVisible: false,
+          title: i === Math.floor(numLines / 2) ? band.label : '', // Label only middle line
+        });
+        
+        bandSeriesRef.current.push(bandSeries);
+      }
     });
 
     // Add candlestick series (FOREGROUND)
@@ -234,18 +238,25 @@ export default function Chart({ enabledIndicators }: ChartProps) {
         const lastCandle = data[data.length - 1];
         setCurrentPrice(lastCandle.close);
         
-        // Add price bands data (thick horizontal lines at midpoint of each band)
-        PRICE_BANDS.forEach((band, index) => {
-          const bandSeries = bandSeriesRef.current[index];
-          const midPrice = (band.from + band.to) / 2;
+        // Add price bands data (multiple lines create filled effect)
+        let seriesIndex = 0;
+        PRICE_BANDS.forEach(band => {
+          const numLines = 15;
+          const priceStep = (band.to - band.from) / numLines;
           
-          // Create horizontal line spanning full time range
-          const bandData = [
-            { time: data[0].time, value: midPrice },
-            { time: data[data.length - 1].time, value: midPrice },
-          ];
-          
-          bandSeries.setData(bandData);
+          for (let i = 0; i < numLines; i++) {
+            const linePrice = band.from + (priceStep * i) + (priceStep / 2);
+            const bandSeries = bandSeriesRef.current[seriesIndex];
+            
+            // Create horizontal line at this price level
+            const bandData = [
+              { time: data[0].time, value: linePrice },
+              { time: data[data.length - 1].time, value: linePrice },
+            ];
+            
+            bandSeries.setData(bandData);
+            seriesIndex++;
+          }
         });
         
         // Add ETF Flow data
