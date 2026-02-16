@@ -21,11 +21,6 @@ const MOCK_INDICATORS = {
   ma100: 82000,
   support1: 93000,
   resistance1: 98000,
-  nupl75: 97000,
-  nupl50: 95000,
-  nupl25: 91000,
-  rhodl5: 89000,
-  rhodl10: 87000,
 };
 
 // Price bands configuration
@@ -38,19 +33,19 @@ interface PriceBand {
 
 const PRICE_BANDS: PriceBand[] = [
   // Strong support zones (dark green)
-  { from: 82000, to: 85000, color: 'rgba(0, 170, 102, 0.25)', label: 'Strong Support' },
+  { from: 82000, to: 85000, color: 'rgba(0, 255, 136, 0.7)', label: 'Strong Support' },
   // Medium support zones (medium green)
-  { from: 85000, to: 88500, color: 'rgba(0, 221, 119, 0.20)', label: 'Support Zone' },
+  { from: 85000, to: 88500, color: 'rgba(0, 255, 136, 0.6)', label: 'Support Zone' },
   // Light support (light green) - confluence area
-  { from: 88500, to: 93000, color: 'rgba(0, 255, 136, 0.15)', label: 'Buy Zone' },
+  { from: 88500, to: 93000, color: 'rgba(0, 255, 136, 0.5)', label: 'Buy Zone' },
   // Neutral zone (white)
-  { from: 93000, to: 95000, color: 'rgba(255, 255, 255, 0.05)', label: 'Neutral' },
+  { from: 93000, to: 95000, color: 'rgba(255, 255, 255, 0.2)', label: 'Neutral' },
   // Light resistance (light orange)
-  { from: 95000, to: 97000, color: 'rgba(255, 187, 102, 0.15)', label: 'Weak Resistance' },
+  { from: 95000, to: 97000, color: 'rgba(255, 107, 53, 0.5)', label: 'Weak Resistance' },
   // Medium resistance (orange)
-  { from: 97000, to: 99000, color: 'rgba(255, 136, 68, 0.20)', label: 'Resistance' },
+  { from: 97000, to: 99000, color: 'rgba(255, 107, 53, 0.6)', label: 'Resistance' },
   // Strong resistance (red)
-  { from: 99000, to: 102000, color: 'rgba(255, 68, 68, 0.25)', label: 'Strong Resistance' },
+  { from: 99000, to: 102000, color: 'rgba(255, 68, 68, 0.7)', label: 'Strong Resistance' },
 ];
 
 // Mock ETF Flow data (millions USD per day)
@@ -120,16 +115,6 @@ export default function Chart({ enabledIndicators }: ChartProps) {
         price: MOCK_INDICATORS.ma100,
         label: '100 MA',
         color: '#FFA500'
-      },
-      'nupl': {
-        price: MOCK_INDICATORS.nupl50,
-        label: 'NUPL 50%',
-        color: '#9D4EDD'
-      },
-      'rhodl': {
-        price: MOCK_INDICATORS.rhodl10,
-        label: 'RHODL Ratio 10',
-        color: '#06FFA5'
       }
     };
 
@@ -196,11 +181,12 @@ export default function Chart({ enabledIndicators }: ChartProps) {
 
     chartRef.current = chart;
 
-    // Add price bands as area series (BEHIND candles)
+    // Add price bands using LineSeries with THICK lines (BEHIND candles)
+    // This creates a visual "filled band" effect
     PRICE_BANDS.forEach(band => {
       const bandSeries = chart.addLineSeries({
         color: band.color,
-        lineWidth: 1,
+        lineWidth: 50, // VERY THICK to create filled effect
         priceLineVisible: false,
         lastValueVisible: false,
         crosshairMarkerVisible: false,
@@ -248,12 +234,12 @@ export default function Chart({ enabledIndicators }: ChartProps) {
         const lastCandle = data[data.length - 1];
         setCurrentPrice(lastCandle.close);
         
-        // Add price bands data (create horizontal bands by setting same value for start and end time)
+        // Add price bands data (thick horizontal lines at midpoint of each band)
         PRICE_BANDS.forEach((band, index) => {
           const bandSeries = bandSeriesRef.current[index];
           const midPrice = (band.from + band.to) / 2;
           
-          // Create data for horizontal band
+          // Create horizontal line spanning full time range
           const bandData = [
             { time: data[0].time, value: midPrice },
             { time: data[data.length - 1].time, value: midPrice },

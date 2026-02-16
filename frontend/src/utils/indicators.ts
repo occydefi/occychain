@@ -30,20 +30,6 @@ export const indicators: Indicator[] = [
     enabled: false,
     description: 'Cumulative Value-Days Destroyed. Indica fundos de mercado historicamente.'
   },
-  {
-    id: 'nupl',
-    name: 'NUPL',
-    category: 'onchain',
-    enabled: false,
-    description: 'Net Unrealized Profit/Loss. Mede lucro/prejuízo não realizado da rede. >0.75 = euforia.'
-  },
-  {
-    id: 'rhodl',
-    name: 'RHODL Ratio',
-    category: 'onchain',
-    enabled: false,
-    description: 'Realised Price HODL Ratio. Comportamento de holders de longo prazo vs curto prazo.'
-  },
   
   // Technical
   {
