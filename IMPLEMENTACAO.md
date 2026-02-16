@@ -1,4 +1,4 @@
-# 🚀 Oki Onchain - Implementação Completa
+# 🚀 OccyOnChain - Implementação Completa
 
 ## ✅ O QUE FOI IMPLEMENTADO
 

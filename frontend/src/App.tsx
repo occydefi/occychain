@@ -30,7 +30,7 @@ function App() {
               <span className="text-4xl">🧌</span>
               <div>
                 <h1 className="text-2xl font-bold bg-gradient-to-r from-occy-green to-occy-blue bg-clip-text text-transparent">
-                  Oki Onchain
+                  OccyOnChain
                 </h1>
                 <p className="text-xs text-gray-400">Bitcoin On-Chain Intelligence</p>
               </div>
