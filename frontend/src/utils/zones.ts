@@ -1,6 +1,6 @@
 import { Zone } from '../types';
 
-export function calculateZones(currentPrice: number, onChainData: any): Zone[] {
+export function calculateZones(currentPrice: number): Zone[] {
   // Simplified zone calculation for MVP
   // Will be enhanced with real confluence logic later
   

@@ -13,7 +13,7 @@ class BinanceService {
       const data = JSON.parse(event.data);
       if (data.k) {
         const candle: CandleData = {
-          time: Math.floor(data.k.t / 1000),
+          time: Math.floor(data.k.t / 1000) as any,
           open: parseFloat(data.k.o),
           high: parseFloat(data.k.h),
           low: parseFloat(data.k.l),
@@ -54,7 +54,7 @@ class BinanceService {
     const data = await response.json();
     
     return data.map((d: any) => ({
-      time: Math.floor(d[0] / 1000),
+      time: Math.floor(d[0] / 1000) as any,
       open: parseFloat(d[1]),
       high: parseFloat(d[2]),
       low: parseFloat(d[3]),

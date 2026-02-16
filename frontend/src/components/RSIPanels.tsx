@@ -12,11 +12,10 @@ export default function RSIPanels() {
 
 function RSIPanel({ 
   title, 
-  timeframe, 
   histogram = false 
 }: { 
   title: string;
-  timeframe: string;
+  timeframe?: string;
   histogram?: boolean;
 }) {
   const chartContainerRef = useRef<HTMLDivElement>(null);
@@ -101,8 +100,8 @@ function RSIPanel({
   );
 }
 
-function generateMockRSI(count: number, histogram: boolean) {
-  const data = [];
+function generateMockRSI(count: number, histogram: boolean): any[] {
+  const data: any[] = [];
   const now = Math.floor(Date.now() / 1000);
   const daySeconds = 86400;
 
@@ -113,8 +112,8 @@ function generateMockRSI(count: number, histogram: boolean) {
       : 40 + Math.random() * 20 + Math.sin(i / 5) * 10; // Oscillating RSI
 
     data.push({
-      time,
-      value: histogram ? value : value,
+      time: time as any,
+      value: value,
       ...(histogram && { color: value > 50 ? '#FF4444' : '#00FF88' })
     });
   }
