@@ -78,7 +78,7 @@ function App() {
       <footer className="border-t border-occy-blue/30 bg-occy-dark/80 backdrop-blur-sm mt-8">
         <div className="container mx-auto px-4 py-4">
           <div className="text-center text-gray-400 text-sm">
-            <p>Built with 🧌 by Oki Onchain • Data: Binance, Alternative.me</p>
+            <p>Data: Binance, Alternative.me</p>
             <p className="text-xs mt-1">Not financial advice. DYOR.</p>
           </div>
         </div>

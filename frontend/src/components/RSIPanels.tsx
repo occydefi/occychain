@@ -4,8 +4,8 @@ import { createChart, IChartApi } from 'lightweight-charts';
 export default function RSIPanels() {
   return (
     <div className="grid grid-cols-2 gap-4 mt-4">
-      <RSIPanel title="RSI Weekly" timeframe="1w" />
-      <RSIPanel title="RSI Monthly Histogram" timeframe="1M" histogram />
+      <RSIPanel title="RSI Semanal" timeframe="1w" />
+      <RSIPanel title="Histograma Mensal" timeframe="1M" histogram />
     </div>
   );
 }
