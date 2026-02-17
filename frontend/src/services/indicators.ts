@@ -1,11 +1,15 @@
 /**
- * Indicators API Service - Fetches REAL data from backend
+ * Indicators Service - Calculates REAL data CLIENT-SIDE
+ * NO BACKEND REQUIRED - Fetches from Binance directly
  */
 
-// In production, use relative URL (same domain)
-// In development, use localhost:3001
-const API_BASE_URL = import.meta.env.VITE_API_URL || 
-  (import.meta.env.MODE === 'production' ? '' : 'http://localhost:3001');
+import { binanceService } from './binance';
+import { 
+  calculateAllMAs, 
+  calculateAllRSI, 
+  calculateFibonacci, 
+  findSupportResistance
+} from '../utils/calculations';
 
 export interface IndicatorsData {
   timestamp: number;
@@ -41,7 +45,7 @@ class IndicatorsService {
   private readonly CACHE_DURATION = 5 * 60 * 1000; // 5 minutes
 
   /**
-   * Fetch all indicators from backend
+   * Calculate all indicators CLIENT-SIDE from Binance data
    */
   async getIndicators(): Promise<IndicatorsData> {
     const now = Date.now();
@@ -53,33 +57,51 @@ class IndicatorsService {
     }
 
     try {
-      console.log('🔄 Fetching indicators from backend...');
-      const response = await fetch(`${API_BASE_URL}/api/indicators`, {
-        method: 'GET',
-        headers: {
-          'Content-Type': 'application/json'
-        }
-      });
-
-      if (!response.ok) {
-        throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+      console.log('🔄 Fetching data from Binance and calculating indicators...');
+      
+      // Fetch historical data directly from Binance
+      const candles = await binanceService.getHistoricalData('BTCUSDT', 365);
+      
+      if (!candles || candles.length === 0) {
+        throw new Error('No candle data received from Binance');
       }
 
-      const data: IndicatorsData = await response.json();
-      
+      const currentPrice = candles[candles.length - 1].close;
+
+      // Calculate all indicators CLIENT-SIDE
+      const mas = calculateAllMAs(candles);
+      const rsis = calculateAllRSI(candles);
+      const fibonacci = calculateFibonacci(candles, 90);
+      const { support, resistance } = findSupportResistance(candles, currentPrice, 0.02);
+
+      const data: IndicatorsData = {
+        timestamp: now,
+        currentPrice,
+        ...mas,
+        ...rsis,
+        fibonacci,
+        support,
+        resistance,
+        dataSource: 'Binance API (Client-side calculation)',
+        candlesCount: candles.length
+      };
+
       // Update cache
       this.cache = data;
       this.lastFetch = now;
 
-      console.log('✅ Indicators loaded:', {
+      console.log('✅ Indicators calculated successfully:', {
         price: data.currentPrice,
         ma200: data.ma200,
-        rsi14: data.rsi14
+        rsi14: data.rsi14,
+        fibonacci: data.fibonacci ? 'calculated' : 'null',
+        support: data.support.length,
+        resistance: data.resistance.length
       });
 
       return data;
     } catch (error) {
-      console.error('❌ Failed to fetch indicators:', error);
+      console.error('❌ Failed to calculate indicators:', error);
       
       // Return cached data if available, even if stale
       if (this.cache) {
