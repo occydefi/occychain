@@ -1,5 +1,5 @@
-// Simple health check endpoint
-export default function handler(req, res) {
+// Simple health check endpoint (CommonJS for Vercel compatibility)
+module.exports = (req, res) => {
   res.setHeader('Access-Control-Allow-Origin', '*');
   res.setHeader('Access-Control-Allow-Methods', 'GET, OPTIONS');
   
@@ -12,4 +12,4 @@ export default function handler(req, res) {
     timestamp: Date.now(),
     message: 'OccyChain API is running'
   });
-}
+};
