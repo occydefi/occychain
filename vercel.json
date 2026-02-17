@@ -1,21 +1,9 @@
 {
-  "buildCommand": "cd frontend && npm run build",
-  "outputDirectory": "frontend/dist",
-  "installCommand": "npm install && npm install --prefix backend && npm install --prefix frontend",
-  "framework": null,
+  "buildCommand": "cd frontend && npm run build && cp -r dist/* ../public/",
+  "installCommand": "npm install && npm install --prefix frontend",
   "functions": {
     "api/**/*.js": {
       "runtime": "nodejs20.x"
     }
-  },
-  "routes": [
-    {
-      "src": "/api/(.*)",
-      "dest": "/api/$1"
-    },
-    {
-      "src": "/(.*)",
-      "dest": "/frontend/dist/$1"
-    }
-  ]
+  }
 }
