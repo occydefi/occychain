@@ -4,9 +4,10 @@ import NodeCache from 'node-cache';
 import { getOnChainData } from './scrapers/bitcoin-magazine.js';
 import { getETFFlow } from './scrapers/farside.js';
 import { getLiquidationHeatmap } from './scrapers/coinglass.js';
+import { getAllIndicators } from './api/indicators.js';
 
 const app = express();
-const cache = new NodeCache({ stdTTL: 3600 }); // 1 hour cache
+const cache = new NodeCache({ stdTTL: 300 }); // 5 min cache for indicators
 
 app.use(cors());
 app.use(express.json());
@@ -14,6 +15,32 @@ app.use(express.json());
 // Health check
 app.get('/api/health', (req, res) => {
   res.json({ status: 'ok', timestamp: Date.now() });
+});
+
+// Main indicators endpoint - REAL DATA FROM BINANCE
+app.get('/api/indicators', async (req, res) => {
+  try {
+    const cached = cache.get('indicators');
+    if (cached) {
+      console.log('📊 Serving cached indicators');
+      return res.json(cached);
+    }
+
+    console.log('🔄 Fetching fresh indicators from Binance...');
+    const indicators = await getAllIndicators();
+    
+    // Cache the result
+    cache.set('indicators', indicators);
+    
+    console.log('✅ Indicators calculated successfully');
+    res.json(indicators);
+  } catch (error) {
+    console.error('❌ Indicators error:', error.message);
+    res.status(500).json({ 
+      error: 'Failed to fetch indicators',
+      message: error.message 
+    });
+  }
 });
 
 // On-chain data endpoint

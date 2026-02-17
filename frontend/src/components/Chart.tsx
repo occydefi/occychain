@@ -1,126 +1,110 @@
 import { useEffect, useRef, useState } from 'react';
 import { createChart, IChartApi, ISeriesApi, LineStyle, ColorType } from 'lightweight-charts';
 import { binanceService } from '../services/binance';
-import { CandleData } from '../types';
+import { indicatorsService, IndicatorsData } from '../services/indicators';
 import FearGreedGauge from './FearGreedGauge';
 
 interface ChartProps {
   enabledIndicators: string[];
 }
 
-// Mock data for on-chain indicators (based on BTC ~$96k)
-const MOCK_INDICATORS = {
-  sthRealizedPrice: 88500,
-  mvrvScore: 92000,
-  realizedPrice: 85000,
-  cvdd: 90000,
-  fibonacci618: 94000,
-  fibonacci50: 88000,
-  fibonacci382: 82000,
-  ma200: 75000,
-  ma100: 82000,
-  support1: 93000,
-  resistance1: 98000,
-};
-
-// Price bands configuration
-interface PriceBand {
-  from: number;
-  to: number;
-  color: string;
-  label: string;
-}
-
-const PRICE_BANDS: PriceBand[] = [
-  // Strong support zones (dark green) - HIGH OPACITY for visibility
-  { from: 82000, to: 85000, color: 'rgba(0, 255, 136, 0.85)', label: 'Strong Support' },
-  // Medium support zones (medium green)
-  { from: 85000, to: 88500, color: 'rgba(0, 255, 136, 0.75)', label: 'Support Zone' },
-  // Light support (light green) - confluence area
-  { from: 88500, to: 93000, color: 'rgba(0, 255, 136, 0.65)', label: 'Buy Zone' },
-  // Neutral zone (white)
-  { from: 93000, to: 95000, color: 'rgba(255, 255, 255, 0.25)', label: 'Neutral' },
-  // Light resistance (light orange)
-  { from: 95000, to: 97000, color: 'rgba(255, 107, 53, 0.65)', label: 'Weak Resistance' },
-  // Medium resistance (orange)
-  { from: 97000, to: 99000, color: 'rgba(255, 107, 53, 0.75)', label: 'Resistance' },
-  // Strong resistance (red)
-  { from: 99000, to: 102000, color: 'rgba(255, 68, 68, 0.85)', label: 'Strong Resistance' },
-];
-
-// Mock ETF Flow data (millions USD per day)
-const generateETFFlowData = (candles: CandleData[]) => {
-  return candles.map(candle => {
-    const isInflow = Math.random() > 0.5;
-    const value = isInflow 
-      ? Math.random() * 500 + 100  // Inflow (positive)
-      : -(Math.random() * 300 + 50); // Outflow (negative)
-    
-    return {
-      time: candle.time,
-      value: value,
-      color: isInflow 
-        ? 'rgba(0, 255, 136, 0.3)'  // Green for inflows
-        : 'rgba(255, 68, 68, 0.3)'  // Red for outflows
-    };
-  });
-};
-
 export default function Chart({ enabledIndicators }: ChartProps) {
   const chartContainerRef = useRef<HTMLDivElement>(null);
   const chartRef = useRef<IChartApi | null>(null);
   const candleSeriesRef = useRef<ISeriesApi<'Candlestick'> | null>(null);
-  const etfSeriesRef = useRef<ISeriesApi<'Histogram'> | null>(null);
   const priceLinesRef = useRef<any[]>([]);
-  const bandSeriesRef = useRef<ISeriesApi<'Line'>[]>([]);
   const [currentPrice, setCurrentPrice] = useState<number>(0);
-  const [showETF, setShowETF] = useState<boolean>(true);
+  const [indicators, setIndicators] = useState<IndicatorsData | null>(null);
+  const [loading, setLoading] = useState<boolean>(true);
 
-  // Get indicator lines based on enabled indicators
+  // Fetch indicators from backend
+  useEffect(() => {
+    const loadIndicators = async () => {
+      try {
+        setLoading(true);
+        const data = await indicatorsService.getIndicators();
+        setIndicators(data);
+      } catch (error) {
+        console.error('Failed to load indicators:', error);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    loadIndicators();
+
+    // Refresh every 5 minutes
+    const interval = setInterval(loadIndicators, 5 * 60 * 1000);
+    return () => clearInterval(interval);
+  }, []);
+
+  // Get indicator lines based on enabled indicators and REAL data
   const getIndicatorLines = () => {
+    if (!indicators) return [];
+
     const lines: Array<{ price: number; label: string; color: string; id: string }> = [];
 
-    const indicatorConfig = {
-      'sth-realized': { 
-        price: MOCK_INDICATORS.sthRealizedPrice, 
-        label: 'STH Realized Price', 
-        color: '#00FF88' 
-      },
-      'mvrv': { 
-        price: MOCK_INDICATORS.mvrvScore, 
-        label: 'MVRV Z-Score', 
-        color: '#00DDFF' 
-      },
-      'realized-price': { 
-        price: MOCK_INDICATORS.realizedPrice, 
-        label: 'Realized Price', 
-        color: '#FFBB66' 
-      },
-      'cvdd': { 
-        price: MOCK_INDICATORS.cvdd, 
-        label: 'CVDD', 
-        color: '#FF88DD' 
-      },
-      'fibonacci': {
-        price: MOCK_INDICATORS.fibonacci618,
-        label: 'Fibonacci 0.618',
-        color: '#FFD700'
-      },
+    const indicatorConfig: Record<string, { price: number | null; label: string; color: string }> = {
       'ma-200': {
-        price: MOCK_INDICATORS.ma200,
+        price: indicators.ma200,
         label: '200 MA',
-        color: '#FF6B6B'
+        color: 'rgba(255, 107, 53, 0.6)'
       },
       'ma-100': {
-        price: MOCK_INDICATORS.ma100,
+        price: indicators.ma100,
         label: '100 MA',
-        color: '#FFA500'
+        color: 'rgba(255, 187, 102, 0.6)'
+      },
+      'ma-50': {
+        price: indicators.ma50,
+        label: '50 MA',
+        color: 'rgba(0, 221, 255, 0.6)'
+      },
+      'ma-21': {
+        price: indicators.ma21,
+        label: '21 MA',
+        color: 'rgba(0, 255, 136, 0.6)'
+      },
+      'ema-50': {
+        price: indicators.ema50,
+        label: '50 EMA',
+        color: 'rgba(255, 136, 221, 0.6)'
+      },
+      'ema-20': {
+        price: indicators.ema20,
+        label: '20 EMA',
+        color: 'rgba(136, 255, 221, 0.6)'
+      },
+      'fibonacci-618': {
+        price: indicators.fibonacci?.level618 || null,
+        label: 'Fib 0.618',
+        color: 'rgba(255, 215, 0, 0.7)'
+      },
+      'fibonacci-50': {
+        price: indicators.fibonacci?.level50 || null,
+        label: 'Fib 0.50',
+        color: 'rgba(255, 215, 0, 0.5)'
+      },
+      'fibonacci-382': {
+        price: indicators.fibonacci?.level382 || null,
+        label: 'Fib 0.382',
+        color: 'rgba(255, 215, 0, 0.4)'
+      },
+      'support': {
+        price: indicators.support && indicators.support.length > 0 ? indicators.support[0] : null,
+        label: 'Support',
+        color: 'rgba(0, 255, 136, 0.8)'
+      },
+      'resistance': {
+        price: indicators.resistance && indicators.resistance.length > 0 ? indicators.resistance[0] : null,
+        label: 'Resistance',
+        color: 'rgba(255, 68, 68, 0.8)'
       }
     };
 
     enabledIndicators.forEach(id => {
-      if (indicatorConfig[id as keyof typeof indicatorConfig]) {
-        const config = indicatorConfig[id as keyof typeof indicatorConfig];
+      const config = indicatorConfig[id];
+      if (config && config.price !== null) {
         lines.push({
           id,
           price: config.price,
@@ -138,15 +122,15 @@ export default function Chart({ enabledIndicators }: ChartProps) {
 
     const containerWidth = chartContainerRef.current.clientWidth;
 
-    // Create main chart
+    // Create main chart with clean design
     const chart = createChart(chartContainerRef.current, {
       layout: {
         background: { type: ColorType.Solid, color: '#0A0E27' },
         textColor: '#D9D9D9',
       },
       grid: {
-        vertLines: { color: '#1A1E37' },
-        horzLines: { color: '#1A1E37' },
+        vertLines: { color: 'rgba(42, 46, 57, 0.3)' },
+        horzLines: { color: 'rgba(42, 46, 57, 0.3)' },
       },
       width: containerWidth,
       height: 600,
@@ -157,10 +141,6 @@ export default function Chart({ enabledIndicators }: ChartProps) {
       },
       rightPriceScale: {
         borderColor: '#2B2B43',
-        scaleMargins: {
-          top: 0.05,
-          bottom: 0.25, // Make room for ETF histogram
-        },
       },
       crosshair: {
         mode: 1,
@@ -181,26 +161,7 @@ export default function Chart({ enabledIndicators }: ChartProps) {
 
     chartRef.current = chart;
 
-    // Add price bands using MULTIPLE thick LineSeries (BEHIND candles)
-    // Create 15 lines per band to simulate filled area effect
-    PRICE_BANDS.forEach(band => {
-      const numLines = 15; // More lines = smoother fill
-      
-      for (let i = 0; i < numLines; i++) {
-        const bandSeries = chart.addLineSeries({
-          color: band.color,
-          lineWidth: 4, // Max width per line
-          priceLineVisible: false,
-          lastValueVisible: false,
-          crosshairMarkerVisible: false,
-          title: i === Math.floor(numLines / 2) ? band.label : '', // Label only middle line
-        });
-        
-        bandSeriesRef.current.push(bandSeries);
-      }
-    });
-
-    // Add candlestick series (FOREGROUND)
+    // Add candlestick series
     const candleSeries = chart.addCandlestickSeries({
       upColor: '#00FF88',
       downColor: '#FF4444',
@@ -210,188 +171,88 @@ export default function Chart({ enabledIndicators }: ChartProps) {
       wickDownColor: '#FF4444',
     });
 
-    // Add ETF Flow histogram on separate scale
-    const etfSeries = chart.addHistogramSeries({
-      priceFormat: {
-        type: 'volume',
-      },
-      priceScaleId: 'etf', // Separate price scale
-      lastValueVisible: false,
-      priceLineVisible: false,
-    });
-
-    chart.priceScale('etf').applyOptions({
-      scaleMargins: {
-        top: 0.8, // Push ETF to bottom
-        bottom: 0,
-      },
-    });
-
     candleSeriesRef.current = candleSeries;
-    etfSeriesRef.current = etfSeries;
 
-    // Load historical data
+    // Load historical candle data
     binanceService.getHistoricalData().then(data => {
       candleSeries.setData(data);
       
       if (data.length > 0) {
         const lastCandle = data[data.length - 1];
         setCurrentPrice(lastCandle.close);
-        
-        // Add price bands data (multiple lines create filled effect)
-        let seriesIndex = 0;
-        PRICE_BANDS.forEach(band => {
-          const numLines = 15;
-          const priceStep = (band.to - band.from) / numLines;
-          
-          for (let i = 0; i < numLines; i++) {
-            const linePrice = band.from + (priceStep * i) + (priceStep / 2);
-            const bandSeries = bandSeriesRef.current[seriesIndex];
-            
-            // Create horizontal line at this price level
-            const bandData = [
-              { time: data[0].time, value: linePrice },
-              { time: data[data.length - 1].time, value: linePrice },
-            ];
-            
-            bandSeries.setData(bandData);
-            seriesIndex++;
-          }
-        });
-        
-        // Add ETF Flow data
-        const etfData = generateETFFlowData(data);
-        etfSeries.setData(etfData);
       }
     });
 
-    // Subscribe to real-time updates
-    binanceService.connect();
-    const unsubscribe = binanceService.subscribe((candle: CandleData) => {
-      candleSeries.update(candle);
-      setCurrentPrice(candle.close);
-    });
-
-    // Handle resize
-    const handleResize = () => {
-      if (chartContainerRef.current && chartRef.current) {
-        const newWidth = chartContainerRef.current.clientWidth;
-        chartRef.current.applyOptions({ width: newWidth });
-      }
-    };
-
-    window.addEventListener('resize', handleResize);
-
+    // Cleanup
     return () => {
-      window.removeEventListener('resize', handleResize);
-      unsubscribe();
-      binanceService.disconnect();
       chart.remove();
     };
   }, []);
 
-  // Update indicator lines when enabled/disabled
+  // Update price lines when indicators change
   useEffect(() => {
     if (!chartRef.current || !candleSeriesRef.current) return;
-    
-    // Remove old indicator lines
+
+    // Remove old price lines
     priceLinesRef.current.forEach(line => {
-      try {
-        candleSeriesRef.current?.removePriceLine(line);
-      } catch (e) {
-        // Line may already be removed
-      }
+      candleSeriesRef.current?.removePriceLine(line);
     });
     priceLinesRef.current = [];
 
-    // Add new indicator lines (dotted horizontal lines with labels)
+    // Add new price lines for enabled indicators
     const lines = getIndicatorLines();
-    lines.forEach(line => {
-      try {
-        const priceLine = candleSeriesRef.current?.createPriceLine({
-          price: line.price,
-          color: line.color,
-          lineWidth: 2,
-          lineStyle: LineStyle.Dashed,
-          axisLabelVisible: true,
-          title: line.label,
-        });
-        
-        if (priceLine) {
-          priceLinesRef.current.push(priceLine);
-        }
-      } catch (e) {
-        console.error('Error creating price line:', e);
+    
+    lines.forEach(lineConfig => {
+      const priceLine = candleSeriesRef.current?.createPriceLine({
+        price: lineConfig.price,
+        color: lineConfig.color,
+        lineWidth: 1,
+        lineStyle: LineStyle.Dashed,
+        axisLabelVisible: true,
+        title: lineConfig.label,
+      });
+
+      if (priceLine) {
+        priceLinesRef.current.push(priceLine);
       }
     });
-  }, [enabledIndicators]);
-
-  // Toggle ETF visibility
-  useEffect(() => {
-    if (etfSeriesRef.current) {
-      etfSeriesRef.current.applyOptions({
-        visible: showETF,
-      });
-    }
-  }, [showETF]);
+  }, [enabledIndicators, indicators]);
 
   return (
-    <div className="relative h-full w-full bg-occy-dark">
-      {/* Fear & Greed Gauge - Top Left */}
-      <div className="absolute top-4 left-4 z-20">
+    <div className="relative">
+      {/* Loading indicator */}
+      {loading && (
+        <div className="absolute top-4 left-4 z-10 bg-gray-800 px-3 py-2 rounded text-sm">
+          Loading indicators...
+        </div>
+      )}
+
+      {/* Current price & data info */}
+      {indicators && (
+        <div className="absolute top-4 right-4 z-10 bg-gray-800/90 px-4 py-2 rounded space-y-1">
+          <div className="text-xl font-bold text-green-400">
+            ${currentPrice.toLocaleString(undefined, { maximumFractionDigits: 2 })}
+          </div>
+          {indicators.rsi14 && (
+            <div className="text-xs text-gray-400">
+              RSI(14): <span className={indicators.rsi14 < 30 ? 'text-green-400' : indicators.rsi14 > 70 ? 'text-red-400' : 'text-yellow-400'}>
+                {indicators.rsi14.toFixed(2)}
+              </span>
+            </div>
+          )}
+          <div className="text-xs text-gray-500">
+            Source: {indicators.dataSource}
+          </div>
+        </div>
+      )}
+
+      {/* Chart container */}
+      <div ref={chartContainerRef} className="w-full" />
+
+      {/* Fear & Greed Gauge */}
+      <div className="mt-4">
         <FearGreedGauge />
       </div>
-
-      {/* Current Price Display - Top Right */}
-      <div className="absolute top-4 right-4 z-20 bg-occy-dark/90 backdrop-blur-sm px-4 py-2 rounded-lg border border-occy-blue/30 shadow-lg">
-        <div className="text-occy-blue text-xs font-medium uppercase tracking-wider">BTC/USDT</div>
-        <div className="text-white text-2xl font-mono font-bold mt-1">
-          ${currentPrice.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
-        </div>
-      </div>
-
-      {/* ETF Flow Toggle - Top Right, below price */}
-      <div className="absolute top-24 right-4 z-20">
-        <button
-          onClick={() => setShowETF(!showETF)}
-          className={`px-3 py-1.5 rounded-lg text-xs font-medium transition-all ${
-            showETF
-              ? 'bg-occy-green/20 text-occy-green border border-occy-green/50'
-              : 'bg-gray-800/50 text-gray-400 border border-gray-600/50'
-          }`}
-        >
-          {showETF ? '✓' : ''} ETF Flow
-        </button>
-      </div>
-
-      {/* Legend - Bottom Right */}
-      <div className="absolute bottom-4 right-4 z-20 bg-occy-dark/90 backdrop-blur-sm px-3 py-2 rounded-lg border border-occy-blue/30 max-w-xs">
-        <div className="text-xs space-y-1">
-          <div className="flex items-center gap-2">
-            <div className="w-8 h-2 bg-gradient-to-r from-green-900/40 to-green-500/40 rounded"></div>
-            <span className="text-gray-300">Support Zones</span>
-          </div>
-          <div className="flex items-center gap-2">
-            <div className="w-8 h-2 bg-white/10 rounded"></div>
-            <span className="text-gray-300">Neutral Zone</span>
-          </div>
-          <div className="flex items-center gap-2">
-            <div className="w-8 h-2 bg-gradient-to-r from-orange-500/40 to-red-500/40 rounded"></div>
-            <span className="text-gray-300">Resistance Zones</span>
-          </div>
-          <div className="flex items-center gap-2 pt-1 border-t border-gray-700 mt-1">
-            <div className="w-8 h-2 bg-occy-green/30 rounded"></div>
-            <span className="text-gray-300">ETF Inflow</span>
-          </div>
-          <div className="flex items-center gap-2">
-            <div className="w-8 h-2 bg-red-500/30 rounded"></div>
-            <span className="text-gray-300">ETF Outflow</span>
-          </div>
-        </div>
-      </div>
-
-      {/* Chart Container */}
-      <div ref={chartContainerRef} className="w-full h-[600px]" />
     </div>
   );
 }

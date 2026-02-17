@@ -33,18 +33,39 @@ export const indicators: Indicator[] = [
   
   // Technical
   {
-    id: 'fibonacci',
-    name: 'Fibonacci',
+    id: 'fibonacci-618',
+    name: 'Fibonacci 0.618',
     category: 'technical',
     enabled: false,
-    description: 'Níveis de retração e extensão de Fibonacci baseados em topos e fundos recentes.'
+    description: 'Nível de retração de Fibonacci 61.8% (Golden Ratio). Suporte/resistência forte.'
   },
   {
-    id: 'support-resistance',
-    name: 'Suporte/Resistência',
+    id: 'fibonacci-50',
+    name: 'Fibonacci 0.50',
     category: 'technical',
     enabled: false,
-    description: 'Níveis históricos de preço onde BTC encontrou suporte ou resistência.'
+    description: 'Nível de retração de Fibonacci 50%. Ponto médio entre swing high e low.'
+  },
+  {
+    id: 'fibonacci-382',
+    name: 'Fibonacci 0.382',
+    category: 'technical',
+    enabled: false,
+    description: 'Nível de retração de Fibonacci 38.2%. Retração comum em mercados fortes.'
+  },
+  {
+    id: 'support',
+    name: 'Suporte',
+    category: 'technical',
+    enabled: false,
+    description: 'Nível de suporte mais relevante baseado em análise de candles históricos.'
+  },
+  {
+    id: 'resistance',
+    name: 'Resistência',
+    category: 'technical',
+    enabled: false,
+    description: 'Nível de resistência mais relevante baseado em análise de candles históricos.'
   },
   {
     id: 'liquidation-heatmap',
